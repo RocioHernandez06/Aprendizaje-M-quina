@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Presentación sobre Redes Neuronales Recurrentes">
+<meta name="dcterms.date" content="2025-10-01">
+
+<title>Redes LSTM ( Long Short-Term Memory): Memoria a Largo y Corto Plazo</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="01-intro.osmnx_files/libs/clipboard/clipboard.min.js"></script>
+<script src="01-intro.osmnx_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="01-intro.osmnx_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="01-intro.osmnx_files/libs/quarto-html/popper.min.js"></script>
+<script src="01-intro.osmnx_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="01-intro.osmnx_files/libs/quarto-html/anchor.min.js"></script>
+<link href="01-intro.osmnx_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="01-intro.osmnx_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="01-intro.osmnx_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="01-intro.osmnx_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="01-intro.osmnx_files/libs/bootstrap/bootstrap-813c323200a87c37e262811031999de4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#qué-son-las-lstm" id="toc-qué-son-las-lstm" class="nav-link active" data-scroll-target="#qué-son-las-lstm">¿Qué son las LSTM?</a></li>
+  <li><a href="#problemas-que-resuelven-las-lstm" id="toc-problemas-que-resuelven-las-lstm" class="nav-link" data-scroll-target="#problemas-que-resuelven-las-lstm">Problemas que Resuelven las LSTM</a></li>
+  <li><a href="#arquitectura-lstm-las-tres-puertas" id="toc-arquitectura-lstm-las-tres-puertas" class="nav-link" data-scroll-target="#arquitectura-lstm-las-tres-puertas">Arquitectura LSTM: Las Tres Puertas</a></li>
+  <li><a href="#puerta-de-olvido" id="toc-puerta-de-olvido" class="nav-link" data-scroll-target="#puerta-de-olvido">Puerta de Olvido</a></li>
+  <li><a href="#puerta-de-entrada" id="toc-puerta-de-entrada" class="nav-link" data-scroll-target="#puerta-de-entrada">Puerta de Entrada</a></li>
+  <li><a href="#célula-de-memoria-candidata" id="toc-célula-de-memoria-candidata" class="nav-link" data-scroll-target="#célula-de-memoria-candidata">Célula de Memoria Candidata</a></li>
+  <li><a href="#actualización-del-estado-de-la-celda" id="toc-actualización-del-estado-de-la-celda" class="nav-link" data-scroll-target="#actualización-del-estado-de-la-celda">Actualización del Estado de la Celda</a></li>
+  <li><a href="#puerta-de-salida" id="toc-puerta-de-salida" class="nav-link" data-scroll-target="#puerta-de-salida">Puerta de Salida</a></li>
+  <li><a href="#actualización-del-estado-oculto" id="toc-actualización-del-estado-oculto" class="nav-link" data-scroll-target="#actualización-del-estado-oculto">Actualización del Estado Oculto</a></li>
+  <li><a href="#flujo-completo-lstm" id="toc-flujo-completo-lstm" class="nav-link" data-scroll-target="#flujo-completo-lstm">Flujo Completo LSTM</a></li>
+  <li><a href="#aplicaciones-prácticas" id="toc-aplicaciones-prácticas" class="nav-link" data-scroll-target="#aplicaciones-prácticas">Aplicaciones Prácticas</a></li>
+  <li><a href="#qué-es-una-capa-lstm-en-el-contexto-de-inundaciones" id="toc-qué-es-una-capa-lstm-en-el-contexto-de-inundaciones" class="nav-link" data-scroll-target="#qué-es-una-capa-lstm-en-el-contexto-de-inundaciones">¿Qué es una capa LSTM en el contexto de inundaciones?</a></li>
+  <li><a href="#parámetros-principales-en-contexto-de-inundaciones" id="toc-parámetros-principales-en-contexto-de-inundaciones" class="nav-link" data-scroll-target="#parámetros-principales-en-contexto-de-inundaciones">Parámetros principales (en contexto de inundaciones)</a></li>
+  <li><a href="#ejemplo-conceptual-con-datos-reales" id="toc-ejemplo-conceptual-con-datos-reales" class="nav-link" data-scroll-target="#ejemplo-conceptual-con-datos-reales">Ejemplo conceptual con datos reales</a></li>
+  <li><a href="#ejemplo-interpretativo-para-predicción-de-inundaciones" id="toc-ejemplo-interpretativo-para-predicción-de-inundaciones" class="nav-link" data-scroll-target="#ejemplo-interpretativo-para-predicción-de-inundaciones">Ejemplo interpretativo para predicción de inundaciones</a></li>
+  <li><a href="#analogía-intuitiva" id="toc-analogía-intuitiva" class="nav-link" data-scroll-target="#analogía-intuitiva">Analogía intuitiva</a></li>
+  <li><a href="#mini-ejemplo-numérico-simplificado" id="toc-mini-ejemplo-numérico-simplificado" class="nav-link" data-scroll-target="#mini-ejemplo-numérico-simplificado">Mini-ejemplo numérico simplificado</a></li>
+  <li><a href="#por-qué-es-útil-para-inundaciones" id="toc-por-qué-es-útil-para-inundaciones" class="nav-link" data-scroll-target="#por-qué-es-útil-para-inundaciones">¿Por qué es útil para inundaciones?</a></li>
+  <li><a href="#resumen-de-ventajas" id="toc-resumen-de-ventajas" class="nav-link" data-scroll-target="#resumen-de-ventajas">Resumen de ventajas</a></li>
+  <li><a href="#aplicaciones-en-sistemas-reales" id="toc-aplicaciones-en-sistemas-reales" class="nav-link" data-scroll-target="#aplicaciones-en-sistemas-reales">Aplicaciones en sistemas reales</a></li>
+  <li><a href="#generación-de-datos-de-inundaciones" id="toc-generación-de-datos-de-inundaciones" class="nav-link" data-scroll-target="#generación-de-datos-de-inundaciones">Generación de Datos de Inundaciones</a></li>
+  <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">Accuracy</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="01-intro.osmnx.pdf"><i class="bi bi-file-pdf"></i>Beamer</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Redes LSTM ( Long Short-Term Memory): Memoria a Largo y Corto Plazo</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Presentación sobre Redes Neuronales Recurrentes </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 1, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="qué-son-las-lstm" class="level2">
+<h2 class="anchored" data-anchor-id="qué-son-las-lstm">¿Qué son las LSTM?</h2>
+<ul>
+<li><strong>Extensión de las RNN</strong> diseñadas para capturar dependencias temporales de secuencias largas</li>
+<li>Las RNN básicas <strong>luchan por capturar</strong> dependencias largas en el tiempo</li>
+<li>Introducen el concepto de <strong>“celda de memoria”</strong> que puede mantener, escribir o leer información</li>
+<li>Controladas por <strong>estructuras llamadas puertas</strong> que gestionan el flujo de información</li>
+</ul>
+</section>
+<section id="problemas-que-resuelven-las-lstm" class="level2">
+<h2 class="anchored" data-anchor-id="problemas-que-resuelven-las-lstm">Problemas que Resuelven las LSTM</h2>
+<section id="limitaciones-de-las-rnn-básicas" class="level3">
+<h3 class="anchored" data-anchor-id="limitaciones-de-las-rnn-básicas">Limitaciones de las RNN Básicas</h3>
+<ul>
+<li><strong>Problema del gradiente de fuga</strong></li>
+<li>Dificultad para considerar <strong>secuencias de entrada largas</strong></li>
+<li><strong>Pérdida de contexto</strong> en dependencias temporales largas</li>
+</ul>
+</section>
+<section id="soluciones-de-las-lstm" class="level3">
+<h3 class="anchored" data-anchor-id="soluciones-de-las-lstm">Soluciones de las LSTM</h3>
+<ul>
+<li>Las alteraciones en los LSTM <strong>abordan el problema del gradiente de fuga</strong></li>
+<li>Permiten considerar <strong>secuencias de entrada mucho más largas</strong></li>
+<li><strong>Preservan el contexto</strong> de manera más efectiva</li>
+</ul>
+</section>
+</section>
+<section id="arquitectura-lstm-las-tres-puertas" class="level2">
+<h2 class="anchored" data-anchor-id="arquitectura-lstm-las-tres-puertas">Arquitectura LSTM: Las Tres Puertas</h2>
+<section id="componentes-fundamentales" class="level3">
+<h3 class="anchored" data-anchor-id="componentes-fundamentales">Componentes Fundamentales</h3>
+<ol type="1">
+<li><strong>Puerta de entrada</strong> - Decide qué valores son importantes</li>
+<li><strong>Puerta de olvido</strong> - Descarta información innecesaria<br>
+</li>
+<li><strong>Puerta de salida</strong> - Decide qué información pasar al siguiente paso</li>
+</ol>
+</section>
+<section id="características-comunes" class="level3">
+<h3 class="anchored" data-anchor-id="características-comunes">Características Comunes</h3>
+<ul>
+<li>Consideran las <strong>entradas del paso de tiempo anterior</strong></li>
+<li>Modifican la <strong>memoria del modelo</strong> y los <strong>pesos de entrada</strong></li>
+<li>Utilizan <strong>funciones de activación específicas</strong> para cada puerta</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="LSTM.png" class="img-fluid figure-img" style="width:50.0%"></p>
+<figcaption>Arquitectura LSTM</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="puerta-de-olvido" class="level2">
+<h2 class="anchored" data-anchor-id="puerta-de-olvido">Puerta de Olvido</h2>
+<section id="función-principal" class="level3">
+<h3 class="anchored" data-anchor-id="función-principal">Función Principal</h3>
+<p>Descarta <strong>información que el modelo considera innecesaria</strong> para tomar decisiones. Ecuación Matemática <span class="math display">\[f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)\]</span></p>
+</section>
+<section id="componentes" class="level3">
+<h3 class="anchored" data-anchor-id="componentes">Componentes</h3>
+<ul>
+<li><span class="math inline">\(W_f\)</span>: <strong>peso de la puerta del olvido</strong></li>
+<li><span class="math inline">\(b_f\)</span>: <strong>sesgo de la puerta de olvido</strong></li>
+<li><span class="math inline">\(\sigma\)</span>: <strong>función sigmoidea</strong> (valores 0-1)</li>
+</ul>
+</section>
+<section id="interpretación" class="level3">
+<h3 class="anchored" data-anchor-id="interpretación">Interpretación</h3>
+<ul>
+<li><strong>0</strong>: Olvidar completamente</li>
+<li><strong>1</strong>: Retener completamente</li>
+<li>Determina qué información del estado anterior conservar</li>
+</ul>
+</section>
+</section>
+<section id="puerta-de-entrada" class="level2">
+<h2 class="anchored" data-anchor-id="puerta-de-entrada">Puerta de Entrada</h2>
+<section id="función-principal-1" class="level3">
+<h3 class="anchored" data-anchor-id="función-principal-1">Función Principal</h3>
+<p>Decide <strong>qué valores son importantes</strong> y deben transmitirse por el modelo.</p>
+</section>
+<section id="ecuaciones" class="level3">
+<h3 class="anchored" data-anchor-id="ecuaciones">Ecuaciones</h3>
+<p><strong>Decidir qué actualizar:</strong> <span class="math display">\[i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)\]</span></p>
+<p><strong>Generar valores candidatos:</strong> <span class="math display">\[\tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C)\]</span></p>
+</section>
+<section id="funciones-de-activación" class="level3">
+<h3 class="anchored" data-anchor-id="funciones-de-activación">Funciones de Activación</h3>
+<ul>
+<li><strong>Sigmoidea</strong>: decide qué valores transmitir (0 = reducir, 1 = conservar)</li>
+<li><strong>TanH</strong>: decide importancia de valores (-1 a 1)</li>
+</ul>
+</section>
+</section>
+<section id="célula-de-memoria-candidata" class="level2">
+<h2 class="anchored" data-anchor-id="célula-de-memoria-candidata">Célula de Memoria Candidata</h2>
+<section id="función" class="level3">
+<h3 class="anchored" data-anchor-id="función">Función</h3>
+<p>Genera <strong>nueva información potencial</strong> para almacenar en el estado de la celda.</p>
+</section>
+<section id="ecuación" class="level3">
+<h3 class="anchored" data-anchor-id="ecuación">Ecuación</h3>
+<p><span class="math display">\[\tilde{C}_t = \tanh(W_C \cdot [h_{t-1}, x_t] + b_C)\]</span></p>
+</section>
+<section id="características" class="level3">
+<h3 class="anchored" data-anchor-id="características">Características</h3>
+<ul>
+<li>Genera <strong>valores candidatos</strong> para agregar al estado</li>
+<li>Función <strong>tanh</strong> asegura valores entre -1 y 1</li>
+<li>Representa <strong>información potencial</strong> para almacenar</li>
+</ul>
+</section>
+</section>
+<section id="actualización-del-estado-de-la-celda" class="level2">
+<h2 class="anchored" data-anchor-id="actualización-del-estado-de-la-celda">Actualización del Estado de la Celda</h2>
+<section id="proceso-de-actualización" class="level3">
+<h3 class="anchored" data-anchor-id="proceso-de-actualización">Proceso de Actualización</h3>
+<p><span class="math display">\[C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t\]</span></p>
+</section>
+<section id="explicación-del-proceso" class="level3">
+<h3 class="anchored" data-anchor-id="explicación-del-proceso">Explicación del Proceso</h3>
+<ol type="1">
+<li>Estado anterior (<span class="math inline">\(C_{t-1}\)</span>) × Puerta de olvido (<span class="math inline">\(f_t\)</span>)</li>
+<li>Valores candidatos (<span class="math inline">\(\tilde{C}_t\)</span>) × Puerta de entrada (<span class="math inline">\(i_t\)</span>)</li>
+<li><strong>Suma</strong> para formar nuevo estado (<span class="math inline">\(C_t\)</span>)</li>
+</ol>
+</section>
+<section id="interpretación-1" class="level3">
+<h3 class="anchored" data-anchor-id="interpretación-1">Interpretación</h3>
+<p>Combina información conservada con nueva información importante.</p>
+</section>
+</section>
+<section id="puerta-de-salida" class="level2">
+<h2 class="anchored" data-anchor-id="puerta-de-salida">Puerta de Salida</h2>
+<section id="función-principal-2" class="level3">
+<h3 class="anchored" data-anchor-id="función-principal-2">Función Principal</h3>
+<p>Decide <strong>qué valores pasar al siguiente paso de tiempo</strong>.</p>
+</section>
+<section id="ecuación-1" class="level3">
+<h3 class="anchored" data-anchor-id="ecuación-1">Ecuación</h3>
+<p><span class="math display">\[o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)\]</span></p>
+</section>
+<section id="proceso-de-decisión" class="level3">
+<h3 class="anchored" data-anchor-id="proceso-de-decisión">Proceso de Decisión</h3>
+<ul>
+<li>Analiza valores y asigna importancia (-1 a 1)</li>
+<li>Regula datos antes del siguiente cálculo</li>
+<li>Decide <strong>salida final</strong> del estado actual</li>
+</ul>
+</section>
+</section>
+<section id="actualización-del-estado-oculto" class="level2">
+<h2 class="anchored" data-anchor-id="actualización-del-estado-oculto">Actualización del Estado Oculto</h2>
+<section id="ecuación-final" class="level3">
+<h3 class="anchored" data-anchor-id="ecuación-final">Ecuación Final</h3>
+<p><span class="math display">\[h_t = o_t \cdot \tanh(C_t)\]</span></p>
+</section>
+<section id="funcionalidad" class="level3">
+<h3 class="anchored" data-anchor-id="funcionalidad">Funcionalidad</h3>
+<ul>
+<li>Estado oculto se actualiza según estado de celda y puerta de salida</li>
+<li>Se usa como <strong>salida para paso actual</strong></li>
+<li>Sirve como <strong>entrada para siguiente paso</strong></li>
+</ul>
+</section>
+</section>
+<section id="flujo-completo-lstm" class="level2">
+<h2 class="anchored" data-anchor-id="flujo-completo-lstm">Flujo Completo LSTM</h2>
+<section id="proceso-secuencial" class="level3">
+<h3 class="anchored" data-anchor-id="proceso-secuencial">Proceso Secuencial</h3>
+<ol type="1">
+<li><strong>Puerta de Olvido</strong>: Qué información conservar (sigmoidea 0-1)</li>
+<li><strong>Puerta de Entrada</strong>: Qué nueva información incorporar (sigmoidea + tanh)</li>
+<li><strong>Actualización Estado</strong>: <span class="math inline">\(C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t\)</span></li>
+<li><strong>Puerta de Salida</strong>: Qué información emitir (sigmoidea)</li>
+<li><strong>Estado Oculto</strong>: <span class="math inline">\(h_t = o_t \cdot \tanh(C_t)\)</span></li>
+</ol>
+</section>
+</section>
+<section id="aplicaciones-prácticas" class="level2">
+<h2 class="anchored" data-anchor-id="aplicaciones-prácticas">Aplicaciones Prácticas</h2>
+<section id="campos-de-uso" class="level3">
+<h3 class="anchored" data-anchor-id="campos-de-uso">Campos de Uso</h3>
+<ul>
+<li><strong>Procesamiento de lenguaje natural</strong></li>
+<li><strong>Reconocimiento de voz</strong></li>
+<li><strong>Predicción de series temporales</strong></li>
+<li><strong>Sistemas de recomendación</strong></li>
+<li><strong>Análisis de datos secuenciales</strong></li>
+</ul>
+</section>
+<section id="beneficios-clave" class="level3">
+<h3 class="anchored" data-anchor-id="beneficios-clave">Beneficios Clave</h3>
+<ul>
+<li><strong>Manejan dependencias largas</strong> eficientemente</li>
+<li><strong>Resuelven problema del gradiente de fuga</strong></li>
+<li><strong>Preservan contexto</strong> en secuencias largas</li>
+<li><strong>Flexibles</strong> para diversos datos temporales</li>
+</ul>
+</section>
+<section id="impacto" class="level3">
+<h3 class="anchored" data-anchor-id="impacto">Impacto</h3>
+<p>Las LSTM representan <strong>evolución significativa</strong> sobre RNN tradicionales, permitiendo manejo efectivo de <strong>dependencias temporales largas</strong>.</p>
+</section>
+</section>
+<section id="qué-es-una-capa-lstm-en-el-contexto-de-inundaciones" class="level2">
+<h2 class="anchored" data-anchor-id="qué-es-una-capa-lstm-en-el-contexto-de-inundaciones">¿Qué es una capa LSTM en el contexto de inundaciones?</h2>
+<p>Es una capa de red neuronal recurrente especializada en procesar <strong>datos secuenciales temporales</strong>:</p>
+<ul>
+<li>Series de tiempo de <strong>niveles de ríos</strong></li>
+<li>Datos de <strong>precipitación</strong> acumulada<br>
+</li>
+<li><strong>Humedad del suelo</strong> histórica</li>
+<li>Variables meteorológicas temporales</li>
+</ul>
+<p><strong>Diseño con “puertas”</strong> le permite: - Recordar <strong>patrones importantes</strong> (picos de lluvia antecedentes) - Olvidar <strong>información irrelevante</strong> (días sin lluvia) - Predecir <strong>eventos extremos</strong> con horas/días de anticipación</p>
+</section>
+<section id="parámetros-principales-en-contexto-de-inundaciones" class="level2">
+<h2 class="anchored" data-anchor-id="parámetros-principales-en-contexto-de-inundaciones">Parámetros principales (en contexto de inundaciones)</h2>
+<section id="configuración-clave-para-hidrología" class="level3">
+<h3 class="anchored" data-anchor-id="configuración-clave-para-hidrología">Configuración clave para hidrología</h3>
+<p><strong>units</strong> → Número de celdas LSTM. Más unidades capturan patrones complejos<br>
+<em>Ejemplo: 50 unidades para predecir crecidas en una cuenca grande</em></p>
+<p><strong>return_sequences</strong> → Si es True, devuelve salidas en cada paso temporal<br>
+<em>Útil para conectar otra LSTM después</em></p>
+<p><strong>return_state</strong> → Devuelve estados internos<br>
+<em>Para modelos avanzados de atención o inicialización</em></p>
+<p><strong>activation</strong> → Función de activación<br>
+<em>Por defecto tanh para estabilidad</em></p>
+<p><strong>input_shape</strong> → Forma de la entrada: (pasos_temporales, características)<br>
+<em>Ejemplo: (30, 5) para 30 días con 5 variables meteorológicas</em></p>
+</section>
+</section>
+<section id="ejemplo-conceptual-con-datos-reales" class="level2">
+<h2 class="anchored" data-anchor-id="ejemplo-conceptual-con-datos-reales">Ejemplo conceptual con datos reales</h2>
+<section id="secuencia-de-7-días-de-datos-hidrológicos" class="level3">
+<h3 class="anchored" data-anchor-id="secuencia-de-7-días-de-datos-hidrológicos">Secuencia de 7 días de datos hidrológicos</h3>
+<p><strong>Entrada (7 días × 4 características):</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Día</th>
+<th>Precipitación</th>
+<th>Nivel Río</th>
+<th>Humedad Suelo</th>
+<th>Temperatura</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>5mm</td>
+<td>2.0m</td>
+<td>60%</td>
+<td>20°C</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>10mm</td>
+<td>2.2m</td>
+<td>70%</td>
+<td>18°C</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>25mm</td>
+<td>2.5m</td>
+<td>80%</td>
+<td>16°C</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>40mm</td>
+<td>2.8m</td>
+<td>85%</td>
+<td>15°C</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>35mm</td>
+<td>3.0m</td>
+<td>90%</td>
+<td>14°C</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>45mm</td>
+<td>3.2m</td>
+<td>92%</td>
+<td>15°C</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>50mm</td>
+<td>3.5m</td>
+<td>95%</td>
+<td>15°C</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="procesamiento-lstm" class="level3">
+<h3 class="anchored" data-anchor-id="procesamiento-lstm">Procesamiento LSTM</h3>
+<p>Una LSTM con <strong>units=3</strong> procesará esta secuencia día a día, actualizando su <strong>“memoria”</strong> con la evolución de las variables.</p>
+</section>
+</section>
+<section id="ejemplo-interpretativo-para-predicción-de-inundaciones" class="level2">
+<h2 class="anchored" data-anchor-id="ejemplo-interpretativo-para-predicción-de-inundaciones">Ejemplo interpretativo para predicción de inundaciones</h2>
+<section id="configuración-del-modelo" class="level3">
+<h3 class="anchored" data-anchor-id="configuración-del-modelo">Configuración del modelo</h3>
+<p><code>LSTM(units=10, return_sequences=False, input_shape=(30, 6))</code></p>
+<section id="a-entrada" class="level4">
+<h4 class="anchored" data-anchor-id="a-entrada">a) Entrada</h4>
+<p>30 días históricos con 6 variables: - Precipitación - Nivel del río<br>
+- Humedad del suelo - Temperatura - Velocidad del viento - Presión atmosférica</p>
+</section>
+<section id="b-proceso" class="level4">
+<h4 class="anchored" data-anchor-id="b-proceso">b) Proceso</h4>
+<p><strong>units=10</strong> → La capa tiene 10 celdas LSTM para capturar patrones complejos<br>
+<em>Ejemplo: correlaciones entre lluvia acumulada y subida del río</em></p>
+<p><strong>return_sequences=False</strong> → Solo devuelve la salida del último día<br>
+<em>Para predecir inundación al día siguiente</em></p>
+<p><strong>Puertas de olvido</strong> descartan datos no relevantes<br>
+<em>Ejemplo: días secos antiguos</em></p>
+<p><strong>Puertas de entrada</strong> guardan información crítica<br>
+<em>Ejemplo: lluvia intensa reciente</em></p>
+</section>
+<section id="c-salida" class="level4">
+<h4 class="anchored" data-anchor-id="c-salida">c) Salida</h4>
+<p><strong>Forma</strong>: (batch_size, 10)</p>
+<p><strong>Interpretación</strong>: Cada valor del vector representa un patrón aprendido: - Valor 1: “alta humedad acumulada” - Valor 2: “tendencia de subida rápida del río” - Valor 3: “patrón de precipitación intensa” - … etc.</p>
+<p>Este vector se alimenta a una capa densa para predecir <strong>probabilidad de inundación</strong>.</p>
+</section>
+</section>
+</section>
+<section id="analogía-intuitiva" class="level2">
+<h2 class="anchored" data-anchor-id="analogía-intuitiva">Analogía intuitiva</h2>
+<p>Piensa en la LSTM como un <strong>experto en hidrología</strong> que analiza un informe diario:</p>
+<p>Forget gate</p>
+<p>Como cuando decide que una <strong>lluvia leve de hace 20 días</strong> ya no es relevante para el riesgo actual.</p>
+<p>Input gate<br>
+Cuando subraya datos importantes: <strong>“¡Lluvia de 100mm en 3 días!”</strong></p>
+<p>Output gate Cuando emite un alerta gradual: <strong>“Río subiendo 0.5m/día → riesgo en 48h”</strong></p>
+<p>Evolución del análisis</p>
+<ul>
+<li><p><strong>Capas simples</strong>: Variables individuales</p></li>
+<li><p><strong>Capas múltiples</strong>: Interacciones complejas</p></li>
+<li><p><strong>Ejemplo avanzado</strong>: “Suelo saturado + lluvia intensa = inundación repentina”</p></li>
+</ul>
+</section>
+<section id="mini-ejemplo-numérico-simplificado" class="level2">
+<h2 class="anchored" data-anchor-id="mini-ejemplo-numérico-simplificado">Mini-ejemplo numérico simplificado</h2>
+<section id="entrada-de-3-días-para-predecir-crecida" class="level3">
+<h3 class="anchored" data-anchor-id="entrada-de-3-días-para-predecir-crecida">Entrada de 3 días para predecir crecida</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Día</th>
+<th>Precipitación</th>
+<th>Nivel Río</th>
+<th>Normalizado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>10mm</td>
+<td>1.5m</td>
+<td>[0.1, 0.15]</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>30mm</td>
+<td>1.7m</td>
+<td>[0.3, 0.17]</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>60mm</td>
+<td>2.0m</td>
+<td>[0.6, 0.2]</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="procesamiento-paso-a-paso" class="level3">
+<h3 class="anchored" data-anchor-id="procesamiento-paso-a-paso">Procesamiento paso a paso</h3>
+<p><strong>Estado inicial</strong>: h₀ = [0, 0], c₀ = [0, 0]</p>
+<p><strong>Paso 1 (Día 1)</strong>: - LSTM detecta lluvia moderada → actualiza ligeramente su estado - h₁ = [0.02, 0.01], c₁ = [0.03, 0.02]</p>
+<p><strong>Paso 2 (Día 2)</strong>: - Lluvia alta → puerta de entrada guarda esta información - h₂ = [0.15, 0.1], c₂ = [0.2, 0.12]</p>
+<p><strong>Paso 3 (Día 3)</strong>: - Lluvia extrema + nivel subiendo → puerta de olvido mantiene todo el historial reciente - <strong>Salida</strong>: h₃ = [0.8, 0.6] (indica alto riesgo)</p>
+</section>
+<section id="resultado-final" class="level3">
+<h3 class="anchored" data-anchor-id="resultado-final">Resultado final</h3>
+<p>Una capa densa traduce esto a: <strong>Probabilidad_inundación = 85%</strong></p>
+</section>
+</section>
+<section id="por-qué-es-útil-para-inundaciones" class="level2">
+<h2 class="anchored" data-anchor-id="por-qué-es-útil-para-inundaciones">¿Por qué es útil para inundaciones?</h2>
+<section id="captura-la-no-linealidad-de-las-cuencas" class="level3">
+<h3 class="anchored" data-anchor-id="captura-la-no-linealidad-de-las-cuencas">Captura la no linealidad de las cuencas</h3>
+<p><em>Ejemplo: el suelo se satura después de X días de lluvia</em></p>
+</section>
+<section id="modela-retrasos-temporales" class="level3">
+<h3 class="anchored" data-anchor-id="modela-retrasos-temporales">Modela retrasos temporales</h3>
+<p><em>Ejemplo: la lluvia tarda horas en afectar el río aguas abajo</em></p>
+</section>
+<section id="puede-integrar-múltiples-fuentes-de-datos" class="level3">
+<h3 class="anchored" data-anchor-id="puede-integrar-múltiples-fuentes-de-datos">Puede integrar múltiples fuentes de datos</h3>
+<ul>
+<li>Satélites</li>
+<li>Sensores terrestres<br>
+</li>
+<li>Pronósticos meteorológicos</li>
+</ul>
+</section>
+<section id="usada-en-sistemas-de-alerta-temprana" class="level3">
+<h3 class="anchored" data-anchor-id="usada-en-sistemas-de-alerta-temprana">Usada en sistemas de alerta temprana</h3>
+<p>Como el <strong>EFAS</strong> (European Flood Awareness System)</p>
+</section>
+</section>
+<section id="resumen-de-ventajas" class="level2">
+<h2 class="anchored" data-anchor-id="resumen-de-ventajas">Resumen de ventajas</h2>
+<section id="para-predicción-hidrológica" class="level3">
+<h3 class="anchored" data-anchor-id="para-predicción-hidrológica">Para predicción hidrológica</h3>
+<ul>
+<li><strong>Memoria persistente</strong> para eventos lejanos críticos</li>
+<li><strong>Adaptabilidad</strong> a diferentes tipos de cuencas</li>
+<li><strong>Robustez</strong> con datos imperfectos o incompletos</li>
+</ul>
+</section>
+<section id="para-gestión-de-emergencias" class="level3">
+<h3 class="anchored" data-anchor-id="para-gestión-de-emergencias">Para gestión de emergencias</h3>
+<ul>
+<li><strong>Alertas tempranas</strong> con mayor anticipación</li>
+<li><strong>Mejor precisión</strong> en predicción de eventos extremos</li>
+<li><strong>Integración</strong> de múltiples fuentes de información</li>
+</ul>
+</section>
+</section>
+<section id="aplicaciones-en-sistemas-reales" class="level2">
+<h2 class="anchored" data-anchor-id="aplicaciones-en-sistemas-reales">Aplicaciones en sistemas reales</h2>
+<section id="casos-de-implementación" class="level3">
+<h3 class="anchored" data-anchor-id="casos-de-implementación">Casos de implementación</h3>
+<ul>
+<li><strong>Sistemas de alerta temprana</strong> nacionales y regionales</li>
+<li><strong>Monitoreo de cuencas</strong> críticas</li>
+<li><strong>Predicción de crecidas</strong> repentinas</li>
+<li><strong>Gestión de embalses</strong> y recursos hídricos</li>
+</ul>
+</section>
+<section id="beneficios-demostrados" class="level3">
+<h3 class="anchored" data-anchor-id="beneficios-demostrados">Beneficios demostrados</h3>
+<ul>
+<li><strong>Reducción de daños</strong> económicos</li>
+<li><strong>Protección de vidas</strong> humanas</li>
+<li><strong>Optimización</strong> de recursos de emergencia</li>
+<li><strong>Mejora</strong> en la toma de decisiones</li>
+</ul>
+</section>
+</section>
+<section id="generación-de-datos-de-inundaciones" class="level2">
+<h2 class="anchored" data-anchor-id="generación-de-datos-de-inundaciones">Generación de Datos de Inundaciones</h2>
+<div id="gen-datos" class="cell" data-message="false" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. IMPORTAR LIBRERÍAS Y GENERAR DATOS DE INUNDACIONES</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ===============================</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.models <span class="im">import</span> Sequential</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> LSTM, Dense, Dropout, Input</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.optimizers <span class="im">import</span> Adam</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.callbacks <span class="im">import</span> EarlyStopping</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> MinMaxScaler</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> accuracy_score, classification_report, confusion_matrix</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.metrics <span class="im">import</span> Precision, Recall</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar semilla para reproducibilidad</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">123</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>tf.random.set_seed(<span class="dv">123</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Generar datos </span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">1500</span>  <span class="co"># Más datos para mejor entrenamiento LSTM</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>lluvia_total <span class="op">=</span> np.random.gamma(shape<span class="op">=</span><span class="dv">3</span>, scale<span class="op">=</span><span class="dv">25</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>intensidad_lluvia <span class="op">=</span> np.random.gamma(shape<span class="op">=</span><span class="dv">2</span>, scale<span class="op">=</span><span class="dv">15</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>duracion_lluvia <span class="op">=</span> np.random.lognormal(mean<span class="op">=</span>np.log(<span class="dv">2</span>), sigma<span class="op">=</span><span class="fl">0.4</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>capacidad_drenaje <span class="op">=</span> np.random.lognormal(mean<span class="op">=</span>np.log(<span class="dv">60</span>), sigma<span class="op">=</span><span class="fl">0.3</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>impermeabilidad <span class="op">=</span> np.random.beta(a<span class="op">=</span><span class="dv">5</span>, b<span class="op">=</span><span class="dv">2</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcular riesgo </span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>riesgo <span class="op">=</span> (</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.6</span> <span class="op">*</span> (lluvia_total <span class="op">/</span> <span class="dv">80</span>) <span class="op">+</span>           <span class="co"># Escala mejorada</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.5</span> <span class="op">*</span> (intensidad_lluvia <span class="op">/</span> <span class="dv">60</span>) <span class="op">+</span>      <span class="co"># Más peso a intensidad</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.6</span> <span class="op">*</span> (impermeabilidad <span class="op">*</span> <span class="fl">1.2</span>) <span class="op">+</span>       <span class="co"># Impermeabilidad escalada</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span><span class="fl">0.7</span> <span class="op">*</span> (capacidad_drenaje <span class="op">/</span> <span class="dv">50</span>) <span class="op">+</span>     <span class="co"># Más impacto del drenaje</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.4</span> <span class="op">*</span> (duracion_lluvia <span class="op">/</span> <span class="dv">5</span>)           <span class="co"># Duración con mejor escala</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Probabilidad de inundación</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>prob_inundacion <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span><span class="dv">5</span> <span class="op">*</span> (riesgo <span class="op">-</span> <span class="fl">0.5</span>)))</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>zona_inundada <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, prob_inundacion)</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Crear DataFrame</span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">'lluvia_total'</span>: lluvia_total,</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">'intensidad_lluvia'</span>: intensidad_lluvia,</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="st">'duracion_lluvia'</span>: duracion_lluvia,</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="st">'capacidad_drenaje'</span>: capacidad_drenaje,</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    <span class="st">'impermeabilidad'</span>: impermeabilidad,</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    <span class="st">'zona_inundada'</span>: zona_inundada</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Datos generados exitosamente"</span>)</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"📊 Dimensiones: </span><span class="sc">{</span>df<span class="sc">.</span>shape<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"🎯 Balance de clases: </span><span class="sc">{</span>df[<span class="st">'zona_inundada'</span>]<span class="sc">.</span>value_counts()<span class="sc">.</span>to_dict()<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>✅ Datos generados exitosamente
+📊 Dimensiones: (1500, 6)
+🎯 Balance de clases: {1: 875, 0: 625}</code></pre>
+</div>
+</div>
+<div id="stats-datos" class="cell" data-message="false" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📈 ESTADÍSTICAS DESCRIPTIVAS:"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.describe().<span class="bu">round</span>(<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+📈 ESTADÍSTICAS DESCRIPTIVAS:
+       lluvia_total  intensidad_lluvia  duracion_lluvia  capacidad_drenaje  \
+count      1500.000           1500.000         1500.000           1500.000   
+mean         75.907             30.543            2.170             62.453   
+std          41.986             21.209            0.890             19.904   
+min           2.631              0.920            0.458             20.489   
+25%          44.954             14.546            1.530             48.088   
+50%          69.267             25.940            2.008             59.751   
+75%          98.630             40.862            2.635             72.269   
+max         344.610            126.060            6.630            203.318   
+
+       impermeabilidad  zona_inundada  
+count         1500.000       1500.000  
+mean             0.723          0.583  
+std              0.156          0.493  
+min              0.185          0.000  
+25%              0.622          0.000  
+50%              0.748          1.000  
+75%              0.841          1.000  
+max              0.995          1.000  </code></pre>
+</div>
+</div>
+<div id="head-datos" class="cell" data-message="false" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📋 MUESTRA DE DATOS (primeras 5 filas):"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.head().<span class="bu">round</span>(<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+📋 MUESTRA DE DATOS (primeras 5 filas):
+   lluvia_total  intensidad_lluvia  duracion_lluvia  capacidad_drenaje  \
+0        31.442              5.020            1.882             50.282   
+1       116.235             39.491            3.689             33.434   
+2        45.725             47.890            2.242             54.890   
+3       159.367             78.169            1.579             79.504   
+4         8.568             40.385            2.327             60.187   
+
+   impermeabilidad  zona_inundada  
+0            0.818              0  
+1            0.612              1  
+2            0.738              0  
+3            0.773              1  
+4            0.727              0  </code></pre>
+</div>
+</div>
+<div id="fd7923ec" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. PREPARACIÓN DE DATOS - SIN SECUENCIAS TEMPORALES</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">'lluvia_total'</span>, <span class="st">'intensidad_lluvia'</span>, <span class="st">'duracion_lluvia'</span>, <span class="st">'capacidad_drenaje'</span>, <span class="st">'impermeabilidad'</span>]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>target <span class="op">=</span> <span class="st">'zona_inundada'</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Normalizar características</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> MinMaxScaler()</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>X_scaled <span class="op">=</span> scaler.fit_transform(df[features])</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[target].values</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># División tradicional (NO temporal)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>split_idx <span class="op">=</span> <span class="bu">int</span>(<span class="fl">0.8</span> <span class="op">*</span> <span class="bu">len</span>(X_scaled))</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>X_train, X_test <span class="op">=</span> X_scaled[:split_idx], X_scaled[split_idx:]</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>y_train, y_test <span class="op">=</span> y[:split_idx], y[split_idx:]</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"📊 DIVISIÓN DE DATOS :"</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Entrenamiento: </span><span class="sc">{</span>X_train<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> muestras"</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prueba: </span><span class="sc">{</span>X_test<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> muestras"</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Características: </span><span class="sc">{</span>X_train<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>📊 DIVISIÓN DE DATOS :
+Entrenamiento: 1200 muestras
+Prueba: 300 muestras
+Características: 5</code></pre>
+</div>
+</div>
+<div id="240a5b5e" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. MODELO DENSE SIMPLE  - CON CLASS WEIGHT</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SimpleDenseClassifier:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_features, x_train, y_train, x_test, y_test):</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.model <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.n_features <span class="op">=</span> n_features</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x_train <span class="op">=</span> x_train</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y_train <span class="op">=</span> y_train</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.x_test <span class="op">=</span> x_test</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.y_test <span class="op">=</span> y_test</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.history <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> build_model(<span class="va">self</span>, hidden_units<span class="op">=</span><span class="dv">32</span>, dropout_rate<span class="op">=</span><span class="fl">0.3</span>, learning_rate<span class="op">=</span><span class="fl">0.001</span>):</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">        Construye modelo Dense simple para clasificación</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.model <span class="op">=</span> Sequential([</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>            Input(shape<span class="op">=</span>(<span class="va">self</span>.n_features,)),</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>            Dense(hidden_units, activation<span class="op">=</span><span class="st">'relu'</span>),</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>            Dropout(dropout_rate),</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>            Dense(hidden_units<span class="op">//</span><span class="dv">2</span>, activation<span class="op">=</span><span class="st">'relu'</span>),</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>            Dropout(<span class="fl">0.1</span>),</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>            Dense(<span class="dv">1</span>, activation<span class="op">=</span><span class="st">'sigmoid'</span>)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>        optimizer <span class="op">=</span> Adam(learning_rate<span class="op">=</span>learning_rate)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.model.<span class="bu">compile</span>(</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>            optimizer<span class="op">=</span>optimizer,</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>            loss<span class="op">=</span><span class="st">'binary_crossentropy'</span>,</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>             metrics<span class="op">=</span>[<span class="st">'accuracy'</span>, Precision(name<span class="op">=</span><span class="st">'precision'</span>), Recall(name<span class="op">=</span><span class="st">'recall'</span>)]</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.model</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> train(<span class="va">self</span>, epochs<span class="op">=</span><span class="dv">100</span>, batch_size<span class="op">=</span><span class="dv">32</span>, verbose<span class="op">=</span><span class="dv">1</span>, class_weight<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">        Entrena el modelo CON CLASS WEIGHT</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>        early_stopping <span class="op">=</span> EarlyStopping(</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>            monitor<span class="op">=</span><span class="st">'val_loss'</span>,</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>            patience<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>            restore_best_weights<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>            verbose<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.history <span class="op">=</span> <span class="va">self</span>.model.fit(</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.x_train, <span class="va">self</span>.y_train,</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>            epochs<span class="op">=</span>epochs,</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>            batch_size<span class="op">=</span>batch_size,</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>            validation_data<span class="op">=</span>(<span class="va">self</span>.x_test, <span class="va">self</span>.y_test),</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>            callbacks<span class="op">=</span>[early_stopping],</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>            verbose<span class="op">=</span>verbose,</span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>            shuffle<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>            class_weight<span class="op">=</span>class_weight  <span class="co"># LINEA NUEVA</span></span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.history</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> evaluate(<span class="va">self</span>):</span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a><span class="co">        Evalúa el modelo</span></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📊 EVALUACIÓN DEL MODELO DENSE"</span>)</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">50</span>)</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>        loss, accuracy, precision, recall <span class="op">=</span> <span class="va">self</span>.model.evaluate(<span class="va">self</span>.x_test, <span class="va">self</span>.y_test, verbose<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>        y_pred_proba <span class="op">=</span> <span class="va">self</span>.model.predict(<span class="va">self</span>.x_test, verbose<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>        y_pred <span class="op">=</span> (y_pred_proba <span class="op">&gt;</span> <span class="fl">0.5</span>).astype(<span class="bu">int</span>).flatten()</span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Precisión: </span><span class="sc">{</span>accuracy<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Pérdida: </span><span class="sc">{</span>loss<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Precisión (metric): </span><span class="sc">{</span>precision<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"Recall: </span><span class="sc">{</span>recall<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📈 REPORTE DE CLASIFICACIÓN:"</span>)</span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(classification_report(<span class="va">self</span>.y_test, y_pred, </span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>                                  target_names<span class="op">=</span>[<span class="st">'No Inundación'</span>, <span class="st">'Inundación'</span>]))</span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> y_pred, y_pred_proba</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> plot_training_history(<span class="va">self</span>):</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a><span class="co">        Grafica la evolución del entrenamiento</span></span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>        fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">5</span>))</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Pérdida</span></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>        ax1.plot(<span class="va">self</span>.history.history[<span class="st">'loss'</span>], label<span class="op">=</span><span class="st">'Entrenamiento'</span>)</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>        ax1.plot(<span class="va">self</span>.history.history[<span class="st">'val_loss'</span>], label<span class="op">=</span><span class="st">'Validación'</span>)</span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>        ax1.set_title(<span class="st">'Evolución de la Pérdida'</span>)</span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>        ax1.set_xlabel(<span class="st">'Época'</span>)</span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>        ax1.set_ylabel(<span class="st">'Pérdida'</span>)</span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>        ax1.legend()</span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>        ax1.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Precisión</span></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a>        ax2.plot(<span class="va">self</span>.history.history[<span class="st">'accuracy'</span>], label<span class="op">=</span><span class="st">'Entrenamiento'</span>)</span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>        ax2.plot(<span class="va">self</span>.history.history[<span class="st">'val_accuracy'</span>], label<span class="op">=</span><span class="st">'Validación'</span>)</span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>        ax2.set_title(<span class="st">'Evolución de la Precisión'</span>)</span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>        ax2.set_xlabel(<span class="st">'Época'</span>)</span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>        ax2.set_ylabel(<span class="st">'Precisión'</span>)</span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>        ax2.legend()</span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>        ax2.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>        plt.tight_layout()</span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>        plt.show()</span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a><span class="co"># Crear y entrenar modelo simple</span></span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>dense_classifier <span class="op">=</span> SimpleDenseClassifier(</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>    n_features<span class="op">=</span><span class="bu">len</span>(features),</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>    x_train<span class="op">=</span>X_train,</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>    y_train<span class="op">=</span>y_train,</span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>    x_test<span class="op">=</span>X_test,</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>    y_test<span class="op">=</span>y_test</span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a><span class="co"># Construir modelo</span></span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> dense_classifier.build_model(</span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a>    hidden_units<span class="op">=</span><span class="dv">32</span>,</span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>    dropout_rate<span class="op">=</span><span class="fl">0.3</span>,</span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">0.001</span></span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🏗️ ARQUITECTURA DEL MODELO DENSE:"</span>)</span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a>model.summary()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>🏗️ ARQUITECTURA DEL MODELO DENSE:</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold">Model: "sequential"</span>
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃<span style="font-weight: bold"> Layer (type)                    </span>┃<span style="font-weight: bold"> Output Shape           </span>┃<span style="font-weight: bold">       Param # </span>┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ dense (<span style="color: #0087ff; text-decoration-color: #0087ff">Dense</span>)                   │ (<span style="color: #00d7ff; text-decoration-color: #00d7ff">None</span>, <span style="color: #00af00; text-decoration-color: #00af00">32</span>)             │           <span style="color: #00af00; text-decoration-color: #00af00">192</span> │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout (<span style="color: #0087ff; text-decoration-color: #0087ff">Dropout</span>)               │ (<span style="color: #00d7ff; text-decoration-color: #00d7ff">None</span>, <span style="color: #00af00; text-decoration-color: #00af00">32</span>)             │             <span style="color: #00af00; text-decoration-color: #00af00">0</span> │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_1 (<span style="color: #0087ff; text-decoration-color: #0087ff">Dense</span>)                 │ (<span style="color: #00d7ff; text-decoration-color: #00d7ff">None</span>, <span style="color: #00af00; text-decoration-color: #00af00">16</span>)             │           <span style="color: #00af00; text-decoration-color: #00af00">528</span> │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dropout_1 (<span style="color: #0087ff; text-decoration-color: #0087ff">Dropout</span>)             │ (<span style="color: #00d7ff; text-decoration-color: #00d7ff">None</span>, <span style="color: #00af00; text-decoration-color: #00af00">16</span>)             │             <span style="color: #00af00; text-decoration-color: #00af00">0</span> │
+├─────────────────────────────────┼────────────────────────┼───────────────┤
+│ dense_2 (<span style="color: #0087ff; text-decoration-color: #0087ff">Dense</span>)                 │ (<span style="color: #00d7ff; text-decoration-color: #00d7ff">None</span>, <span style="color: #00af00; text-decoration-color: #00af00">1</span>)              │            <span style="color: #00af00; text-decoration-color: #00af00">17</span> │
+└─────────────────────────────────┴────────────────────────┴───────────────┘
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Total params: </span><span style="color: #00af00; text-decoration-color: #00af00">737</span> (2.88 KB)
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Trainable params: </span><span style="color: #00af00; text-decoration-color: #00af00">737</span> (2.88 KB)
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="font-weight: bold"> Non-trainable params: </span><span style="color: #00af00; text-decoration-color: #00af00">0</span> (0.00 B)
+</pre>
+</div>
+</div>
+<div id="42c1493c" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   ARQUITECTURA CON DROPOUT INTEGRADO</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># echo : false </span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.patches <span class="im">as</span> patches</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> visualizar_arquitectura_corregida():</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    fig, ax <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">16</span>, <span class="dv">10</span>))</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Configuración</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(<span class="dv">0</span>, <span class="dv">12</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    ax.set_ylim(<span class="dv">0</span>, <span class="dv">15</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    ax.set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    ax.axis(<span class="st">'off'</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Título</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">6</span>, <span class="fl">14.5</span>, <span class="st">'ARQUITECTURA DE LA RED NEURONAL - MODELO DENSE'</span>, </span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">18</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Colores</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    colores <span class="op">=</span> {</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        <span class="st">'entrada'</span>: <span class="st">'lightblue'</span>,</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        <span class="st">'oculta'</span>: <span class="st">'lightgreen'</span>, </span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="st">'dropout'</span>: <span class="st">'orange'</span>,</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">'salida'</span>: <span class="st">'red'</span>,</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">'prediccion'</span>: <span class="st">'yellow'</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== CAPA DE ENTRADA ====================</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">1</span>, <span class="dv">12</span>, <span class="st">'CAPA DE ENTRADA</span><span class="ch">\n</span><span class="st">(5 características)'</span>, </span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">12</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.3"</span>, facecolor<span class="op">=</span>colores[<span class="st">'entrada'</span>]))</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Neuronas de entrada (5 características)</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        y_pos <span class="op">=</span> <span class="dv">11</span> <span class="op">-</span> i <span class="op">*</span> <span class="fl">0.8</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>        ax.plot(<span class="dv">1</span>, y_pos, <span class="st">'o'</span>, markersize<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">'blue'</span>)</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Conexiones a capa oculta 1</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>            target_y <span class="op">=</span> <span class="dv">10</span> <span class="op">-</span> (j <span class="op">*</span> <span class="fl">0.25</span>)  <span class="co"># 32 neuronas en capa 1</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>            ax.plot([<span class="fl">1.1</span>, <span class="fl">2.9</span>], [y_pos, target_y], <span class="st">'gray'</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== CAPA OCULTA 1 ====================</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">4</span>, <span class="dv">12</span>, <span class="st">'CAPA OCULTA 1</span><span class="ch">\n</span><span class="st">(32 neuronas + Dropout 30%)'</span>, </span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">12</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.3"</span>, facecolor<span class="op">=</span>colores[<span class="st">'oculta'</span>]))</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 32 neuronas capa 1</span></span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>    neuronas_capa1 <span class="op">=</span> []</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">32</span>):</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>        y_pos <span class="op">=</span> <span class="dv">11</span> <span class="op">-</span> i <span class="op">*</span> <span class="fl">0.25</span></span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>        neuronas_capa1.append(y_pos)</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Neurona activa (70%)</span></span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">3</span> <span class="op">!=</span> <span class="dv">0</span>:  <span class="co"># 70% de neuronas activas</span></span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>            ax.plot(<span class="dv">4</span>, y_pos, <span class="st">'o'</span>, markersize<span class="op">=</span><span class="dv">6</span>, color<span class="op">=</span><span class="st">'green'</span>)</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:  <span class="co"># 30% dropout (apagadas)</span></span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a>            ax.plot(<span class="dv">4</span>, y_pos, <span class="st">'x'</span>, markersize<span class="op">=</span><span class="dv">8</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Conexiones a capa oculta 2</span></span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, y1 <span class="kw">in</span> <span class="bu">enumerate</span>(neuronas_capa1):</span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">3</span> <span class="op">!=</span> <span class="dv">0</span>:  <span class="co"># Solo neuronas activas se conectan</span></span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">16</span>):</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a>                target_y <span class="op">=</span> <span class="dv">9</span> <span class="op">-</span> (j <span class="op">*</span> <span class="fl">0.4</span>)  <span class="co"># 16 neuronas en capa 2</span></span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>                ax.plot([<span class="fl">4.1</span>, <span class="fl">5.9</span>], [y1, target_y], <span class="st">'gray'</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== CAPA OCULTA 2 ====================</span></span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">7</span>, <span class="dv">10</span>, <span class="st">'CAPA OCULTA 2</span><span class="ch">\n</span><span class="st">(16 neuronas + Dropout 30%)'</span>, </span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">12</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.3"</span>, facecolor<span class="op">=</span>colores[<span class="st">'oculta'</span>]))</span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 16 neuronas capa 2</span></span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a>    neuronas_capa2 <span class="op">=</span> []</span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">16</span>):</span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a>        y_pos <span class="op">=</span> <span class="dv">9</span> <span class="op">-</span> i <span class="op">*</span> <span class="fl">0.4</span></span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a>        neuronas_capa2.append(y_pos)</span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Neurona activa (70%)</span></span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">3</span> <span class="op">!=</span> <span class="dv">0</span>:  <span class="co"># 70% de neuronas activas</span></span>
+<span id="cb11-80"><a href="#cb11-80" aria-hidden="true" tabindex="-1"></a>            ax.plot(<span class="dv">7</span>, y_pos, <span class="st">'o'</span>, markersize<span class="op">=</span><span class="dv">7</span>, color<span class="op">=</span><span class="st">'green'</span>)</span>
+<span id="cb11-81"><a href="#cb11-81" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:  <span class="co"># 30% dropout (apagadas)</span></span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a>            ax.plot(<span class="dv">7</span>, y_pos, <span class="st">'x'</span>, markersize<span class="op">=</span><span class="dv">9</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Conexiones a capa salida</span></span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, y2 <span class="kw">in</span> <span class="bu">enumerate</span>(neuronas_capa2):</span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">%</span> <span class="dv">3</span> <span class="op">!=</span> <span class="dv">0</span>:  <span class="co"># Solo neuronas activas se conectan</span></span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a>            ax.plot([<span class="fl">7.1</span>, <span class="fl">8.9</span>], [y2, <span class="dv">6</span>], <span class="st">'gray'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== CAPA DE SALIDA ====================</span></span>
+<span id="cb11-90"><a href="#cb11-90" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">10</span>, <span class="dv">7</span>, <span class="st">'CAPA DE SALIDA</span><span class="ch">\n</span><span class="st">(1 neurona)'</span>, </span>
+<span id="cb11-91"><a href="#cb11-91" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">12</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb11-92"><a href="#cb11-92" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.3"</span>, facecolor<span class="op">=</span>colores[<span class="st">'salida'</span>]))</span>
+<span id="cb11-93"><a href="#cb11-93" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-94"><a href="#cb11-94" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Neurona de salida</span></span>
+<span id="cb11-95"><a href="#cb11-95" aria-hidden="true" tabindex="-1"></a>    ax.plot(<span class="dv">10</span>, <span class="dv">6</span>, <span class="st">'o'</span>, markersize<span class="op">=</span><span class="dv">12</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb11-96"><a href="#cb11-96" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-97"><a href="#cb11-97" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== PREDICCIÓN ====================</span></span>
+<span id="cb11-98"><a href="#cb11-98" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="dv">10</span>, <span class="dv">4</span>, <span class="st">'PREDICCIÓN FINAL</span><span class="ch">\n</span><span class="st">0% - 100% probabilidad</span><span class="ch">\n</span><span class="st">INUNDACIÓN / NO INUNDACIÓN'</span>, </span>
+<span id="cb11-99"><a href="#cb11-99" aria-hidden="true" tabindex="-1"></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb11-100"><a href="#cb11-100" aria-hidden="true" tabindex="-1"></a>            bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.3"</span>, facecolor<span class="op">=</span>colores[<span class="st">'prediccion'</span>]))</span>
+<span id="cb11-101"><a href="#cb11-101" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-102"><a href="#cb11-102" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== FLUJOS PRINCIPALES ====================</span></span>
+<span id="cb11-103"><a href="#cb11-103" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Flechas entre capas</span></span>
+<span id="cb11-104"><a href="#cb11-104" aria-hidden="true" tabindex="-1"></a>    ax.arrow(<span class="fl">1.5</span>, <span class="dv">10</span>, <span class="fl">1.8</span>, <span class="dv">0</span>, head_width<span class="op">=</span><span class="fl">0.2</span>, head_length<span class="op">=</span><span class="fl">0.2</span>, fc<span class="op">=</span><span class="st">'black'</span>, ec<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb11-105"><a href="#cb11-105" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="fl">2.5</span>, <span class="fl">10.3</span>, <span class="st">'5 → 32 conexiones'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb11-106"><a href="#cb11-106" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-107"><a href="#cb11-107" aria-hidden="true" tabindex="-1"></a>    ax.arrow(<span class="fl">4.5</span>, <span class="dv">8</span>, <span class="fl">1.8</span>, <span class="dv">0</span>, head_width<span class="op">=</span><span class="fl">0.2</span>, head_length<span class="op">=</span><span class="fl">0.2</span>, fc<span class="op">=</span><span class="st">'black'</span>, ec<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb11-108"><a href="#cb11-108" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="fl">5.5</span>, <span class="fl">8.3</span>, <span class="st">'32 → 16 conexiones'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb11-109"><a href="#cb11-109" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-110"><a href="#cb11-110" aria-hidden="true" tabindex="-1"></a>    ax.arrow(<span class="fl">7.5</span>, <span class="dv">6</span>, <span class="fl">1.8</span>, <span class="dv">0</span>, head_width<span class="op">=</span><span class="fl">0.2</span>, head_length<span class="op">=</span><span class="fl">0.2</span>, fc<span class="op">=</span><span class="st">'black'</span>, ec<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb11-111"><a href="#cb11-111" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="fl">8.5</span>, <span class="fl">6.3</span>, <span class="st">'16 → 1 conexión'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>)</span>
+<span id="cb11-112"><a href="#cb11-112" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-113"><a href="#cb11-113" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ==================== DETALLES TÉCNICOS ====================</span></span>
+<span id="cb11-114"><a href="#cb11-114" aria-hidden="true" tabindex="-1"></a>    detalles <span class="op">=</span> [</span>
+<span id="cb11-115"><a href="#cb11-115" aria-hidden="true" tabindex="-1"></a>        <span class="st">"• Cada neurona se conecta con TODAS las de la siguiente capa"</span>,</span>
+<span id="cb11-116"><a href="#cb11-116" aria-hidden="true" tabindex="-1"></a>        <span class="st">"• Dropout: 30</span><span class="sc">% d</span><span class="st">e neuronas se APAGAN aleatoriamente en entrenamiento"</span>,</span>
+<span id="cb11-117"><a href="#cb11-117" aria-hidden="true" tabindex="-1"></a>        <span class="st">"• Activación: ReLU en capas ocultas, Sigmoid en salida"</span>,</span>
+<span id="cb11-118"><a href="#cb11-118" aria-hidden="true" tabindex="-1"></a>        <span class="st">"• Entrada: 5 características → Salida: 1 probabilidad"</span></span>
+<span id="cb11-119"><a href="#cb11-119" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb11-120"><a href="#cb11-120" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-121"><a href="#cb11-121" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, detalle <span class="kw">in</span> <span class="bu">enumerate</span>(detalles):</span>
+<span id="cb11-122"><a href="#cb11-122" aria-hidden="true" tabindex="-1"></a>        ax.text(<span class="dv">6</span>, <span class="dv">2</span> <span class="op">-</span> i<span class="op">*</span><span class="fl">0.4</span>, detalle, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb11-123"><a href="#cb11-123" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb11-124"><a href="#cb11-124" aria-hidden="true" tabindex="-1"></a>    plt.tight_layout()</span>
+<span id="cb11-125"><a href="#cb11-125" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb11-126"><a href="#cb11-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-127"><a href="#cb11-127" aria-hidden="true" tabindex="-1"></a><span class="co"># Ejecutar visualización </span></span>
+<span id="cb11-128"><a href="#cb11-128" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"ARQUITECTURA CON DROPOUT INTEGRADO"</span>)</span>
+<span id="cb11-129"><a href="#cb11-129" aria-hidden="true" tabindex="-1"></a>visualizar_arquitectura_corregida()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ARQUITECTURA CON DROPOUT INTEGRADO</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01-intro.osmnx_files/figure-html/cell-7-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="e4481cd8" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. ENTRENAMIENTO Y EVALUACIÓN  - CON PESOS BALANCEADOS</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#| results: 'hide'</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.utils.class_weight <span class="im">import</span> compute_class_weight</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcular pesos automáticamente para balancear clases</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>class_weights <span class="op">=</span> compute_class_weight(</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">'balanced'</span>, </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    classes<span class="op">=</span>np.unique(y_train), </span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span>y_train</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>class_weight_dict <span class="op">=</span> {<span class="dv">0</span>: class_weights[<span class="dv">0</span>], <span class="dv">1</span>: class_weights[<span class="dv">1</span>]}</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"⚖️ PESOS BALANCEADOS CALCULADOS:"</span>)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Peso Clase 0 (No inundación): </span><span class="sc">{</span>class_weight_dict[<span class="dv">0</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Peso Clase 1 (Inundación): </span><span class="sc">{</span>class_weight_dict[<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Entrenar modelo CON PESOS BALANCEADOS</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>history <span class="op">=</span> dense_classifier.train(</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    epochs<span class="op">=</span><span class="dv">200</span>, </span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    batch_size<span class="op">=</span><span class="dv">32</span>, </span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    verbose<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    class_weight<span class="op">=</span>class_weight_dict  <span class="co"># LINEA MAGICA</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Graficar evolución del entrenamiento</span></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>dense_classifier.plot_training_history()</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluar modelo</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>y_pred, y_pred_proba <span class="op">=</span> dense_classifier.evaluate()</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Matriz de confusión</span></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🎯 MATRIZ DE CONFUSIÓN:"</span>)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> confusion_matrix(y_test, y_pred)</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(cm, interpolation<span class="op">=</span><span class="st">'nearest'</span>, cmap<span class="op">=</span>plt.cm.Blues)</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>ax.figure.colorbar(im, ax<span class="op">=</span>ax)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xticks<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">1</span>], yticks<span class="op">=</span>[<span class="dv">0</span>, <span class="dv">1</span>],</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>       xticklabels<span class="op">=</span>[<span class="st">'No Inundación'</span>, <span class="st">'Inundación'</span>], </span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>       yticklabels<span class="op">=</span>[<span class="st">'No Inundación'</span>, <span class="st">'Inundación'</span>],</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>       title<span class="op">=</span><span class="st">'Matriz de Confusión - Modelo Dense'</span>,</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>       ylabel<span class="op">=</span><span class="st">'Real'</span>, xlabel<span class="op">=</span><span class="st">'Predicho'</span>)</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Anotar valores en la matriz</span></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>thresh <span class="op">=</span> cm.<span class="bu">max</span>() <span class="op">/</span> <span class="fl">2.</span></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(cm.shape[<span class="dv">0</span>]):</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(cm.shape[<span class="dv">1</span>]):</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>        ax.text(j, i, <span class="bu">format</span>(cm[i, j], <span class="st">'d'</span>),</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">"center"</span>, va<span class="op">=</span><span class="st">"center"</span>,</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">"white"</span> <span class="cf">if</span> cm[i, j] <span class="op">&gt;</span> thresh <span class="cf">else</span> <span class="st">"black"</span>)</span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<div class="ansi-escaped-output">
+<pre>⚖️ PESOS BALANCEADOS CALCULADOS:
+
+Peso Clase 0 (No inundación): 1.220
+
+Peso Clase 1 (Inundación): 0.847
+
+Epoch 1/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">53s</span> 1s/step - accuracy: 0.4062 - loss: 0.7066 - precision: 0.3333 - recall: 0.0556
+
+<span class="ansi-bold">31/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.4589 - loss: 0.6907 - precision: 0.6418 - recall: 0.1921
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">2s</span> 11ms/step - accuracy: 0.5217 - loss: 0.6842 - precision: 0.6709 - recall: 0.3715 - val_accuracy: 0.7567 - val_loss: 0.6681 - val_precision: 0.7901 - val_recall: 0.7665
+
+Epoch 2/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.6250 - loss: 0.6881 - precision: 0.6500 - recall: 0.7222
+
+<span class="ansi-bold">33/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.6386 - loss: 0.6677 - precision: 0.7280 - recall: 0.6358 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 4ms/step - accuracy: 0.6500 - loss: 0.6652 - precision: 0.7264 - recall: 0.6525 - val_accuracy: 0.7833 - val_loss: 0.6456 - val_precision: 0.8188 - val_recall: 0.7844
+
+Epoch 3/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 26ms/step - accuracy: 0.5000 - loss: 0.6971 - precision: 0.5556 - recall: 0.5556
+
+<span class="ansi-bold">37/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.6346 - loss: 0.6550 - precision: 0.7352 - recall: 0.6108 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 5ms/step - accuracy: 0.6608 - loss: 0.6471 - precision: 0.7431 - recall: 0.6497 - val_accuracy: 0.7933 - val_loss: 0.6161 - val_precision: 0.8261 - val_recall: 0.7964
+
+Epoch 4/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">2s</span> 67ms/step - accuracy: 0.6250 - loss: 0.6428 - precision: 0.6667 - recall: 0.6667
+
+<span class="ansi-bold">22/38</span> <span class="ansi-green-fg">━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.6716 - loss: 0.6360 - precision: 0.7639 - recall: 0.6518 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 5ms/step - accuracy: 0.6908 - loss: 0.6270 - precision: 0.7549 - recall: 0.7048 - val_accuracy: 0.7800 - val_loss: 0.5925 - val_precision: 0.8483 - val_recall: 0.7365
+
+Epoch 5/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 28ms/step - accuracy: 0.6250 - loss: 0.6223 - precision: 0.7500 - recall: 0.5000
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.6958 - loss: 0.6045 - precision: 0.7727 - recall: 0.6864 - val_accuracy: 0.7833 - val_loss: 0.5634 - val_precision: 0.8542 - val_recall: 0.7365
+
+Epoch 6/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.7188 - loss: 0.5949 - precision: 0.8000 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7133 - loss: 0.5784 - precision: 0.7974 - recall: 0.6893 - val_accuracy: 0.7900 - val_loss: 0.5332 - val_precision: 0.8768 - val_recall: 0.7246
+
+Epoch 7/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.6875 - loss: 0.5826 - precision: 0.8333 - recall: 0.5556
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7375 - loss: 0.5495 - precision: 0.8056 - recall: 0.7316 - val_accuracy: 0.7767 - val_loss: 0.5092 - val_precision: 0.8731 - val_recall: 0.7006
+
+Epoch 8/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.5408 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">37/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.7377 - loss: 0.5310 - precision: 0.8532 - recall: 0.6791 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7525 - loss: 0.5209 - precision: 0.8278 - recall: 0.7331 - val_accuracy: 0.7833 - val_loss: 0.4831 - val_precision: 0.8592 - val_recall: 0.7305
+
+Epoch 9/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.7500 - loss: 0.5142 - precision: 0.8571 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7525 - loss: 0.5075 - precision: 0.8186 - recall: 0.7458 - val_accuracy: 0.7933 - val_loss: 0.4733 - val_precision: 0.8889 - val_recall: 0.7186
+
+Epoch 10/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 25ms/step - accuracy: 0.7812 - loss: 0.4609 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7700 - loss: 0.4981 - precision: 0.8224 - recall: 0.7782 - val_accuracy: 0.7867 - val_loss: 0.4721 - val_precision: 0.9055 - val_recall: 0.6886
+
+Epoch 11/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 29ms/step - accuracy: 0.7812 - loss: 0.4360 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">32/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.7498 - loss: 0.4901 - precision: 0.8500 - recall: 0.7084 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 4ms/step - accuracy: 0.7608 - loss: 0.4841 - precision: 0.8204 - recall: 0.7613 - val_accuracy: 0.8033 - val_loss: 0.4632 - val_precision: 0.9030 - val_recall: 0.7246
+
+Epoch 12/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.4571 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">31/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.7575 - loss: 0.4885 - precision: 0.8427 - recall: 0.7293 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 4ms/step - accuracy: 0.7792 - loss: 0.4820 - precision: 0.8351 - recall: 0.7797 - val_accuracy: 0.8000 - val_loss: 0.4592 - val_precision: 0.8905 - val_recall: 0.7305
+
+Epoch 13/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 27ms/step - accuracy: 0.7812 - loss: 0.4610 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.7542 - loss: 0.4804 - precision: 0.8448 - recall: 0.7204 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7758 - loss: 0.4726 - precision: 0.8341 - recall: 0.7740 - val_accuracy: 0.8033 - val_loss: 0.4512 - val_precision: 0.8750 - val_recall: 0.7545
+
+Epoch 14/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.4544 - precision: 0.8235 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7917 - loss: 0.4557 - precision: 0.8398 - recall: 0.7994 - val_accuracy: 0.8033 - val_loss: 0.4415 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 15/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.8125 - loss: 0.3721 - precision: 0.8750 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7908 - loss: 0.4341 - precision: 0.8510 - recall: 0.7825 - val_accuracy: 0.8033 - val_loss: 0.4445 - val_precision: 0.8750 - val_recall: 0.7545
+
+Epoch 16/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 25ms/step - accuracy: 0.7188 - loss: 0.4075 - precision: 0.8462 - recall: 0.6111
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7883 - loss: 0.4448 - precision: 0.8408 - recall: 0.7910 - val_accuracy: 0.8033 - val_loss: 0.4439 - val_precision: 0.8750 - val_recall: 0.7545
+
+Epoch 17/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 24ms/step - accuracy: 0.7812 - loss: 0.4143 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7867 - loss: 0.4514 - precision: 0.8488 - recall: 0.7768 - val_accuracy: 0.8100 - val_loss: 0.4462 - val_precision: 0.8929 - val_recall: 0.7485
+
+Epoch 18/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3211 - precision: 1.0000 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.7903 - loss: 0.4409 - precision: 0.8743 - recall: 0.7590 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7917 - loss: 0.4431 - precision: 0.8502 - recall: 0.7853 - val_accuracy: 0.8067 - val_loss: 0.4370 - val_precision: 0.8609 - val_recall: 0.7784
+
+Epoch 19/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 24ms/step - accuracy: 0.7812 - loss: 0.4102 - precision: 0.8235 - recall: 0.7778
+
+<span class="ansi-bold">35/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.7989 - loss: 0.4419 - precision: 0.8669 - recall: 0.7850 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7900 - loss: 0.4450 - precision: 0.8444 - recall: 0.7895 - val_accuracy: 0.8067 - val_loss: 0.4374 - val_precision: 0.8609 - val_recall: 0.7784
+
+Epoch 20/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 25ms/step - accuracy: 0.7812 - loss: 0.3984 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7925 - loss: 0.4409 - precision: 0.8472 - recall: 0.7910 - val_accuracy: 0.8033 - val_loss: 0.4387 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 21/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8125 - loss: 0.3918 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7783 - loss: 0.4461 - precision: 0.8410 - recall: 0.7698 - val_accuracy: 0.8067 - val_loss: 0.4365 - val_precision: 0.8562 - val_recall: 0.7844
+
+Epoch 22/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8125 - loss: 0.3792 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7875 - loss: 0.4395 - precision: 0.8437 - recall: 0.7853 - val_accuracy: 0.7933 - val_loss: 0.4415 - val_precision: 0.8523 - val_recall: 0.7605
+
+Epoch 23/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 27ms/step - accuracy: 0.7500 - loss: 0.4305 - precision: 0.9167 - recall: 0.6111
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7925 - loss: 0.4400 - precision: 0.8430 - recall: 0.7966 - val_accuracy: 0.8033 - val_loss: 0.4382 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 24/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.6875 - loss: 0.4428 - precision: 0.8333 - recall: 0.5556
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8033 - loss: 0.4239 - precision: 0.8544 - recall: 0.8037 - val_accuracy: 0.8033 - val_loss: 0.4367 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 25/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.8438 - loss: 0.3180 - precision: 0.9333 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8008 - loss: 0.4383 - precision: 0.8537 - recall: 0.7994 - val_accuracy: 0.8000 - val_loss: 0.4372 - val_precision: 0.8543 - val_recall: 0.7725
+
+Epoch 26/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 26ms/step - accuracy: 0.8125 - loss: 0.3551 - precision: 0.8750 - recall: 0.7778
+
+<span class="ansi-bold">35/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━</span> <span class="ansi-bold">0s</span> 1ms/step - accuracy: 0.7963 - loss: 0.4226 - precision: 0.8675 - recall: 0.7788 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7958 - loss: 0.4389 - precision: 0.8502 - recall: 0.7938 - val_accuracy: 0.8000 - val_loss: 0.4389 - val_precision: 0.8543 - val_recall: 0.7725
+
+Epoch 27/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3532 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7900 - loss: 0.4375 - precision: 0.8444 - recall: 0.7895 - val_accuracy: 0.8033 - val_loss: 0.4369 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 28/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8125 - loss: 0.3919 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7892 - loss: 0.4366 - precision: 0.8484 - recall: 0.7825 - val_accuracy: 0.8133 - val_loss: 0.4337 - val_precision: 0.8535 - val_recall: 0.8024
+
+Epoch 29/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 32ms/step - accuracy: 0.8438 - loss: 0.3752 - precision: 0.9333 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7942 - loss: 0.4354 - precision: 0.8477 - recall: 0.7938 - val_accuracy: 0.8033 - val_loss: 0.4353 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 30/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.7812 - loss: 0.3946 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7908 - loss: 0.4369 - precision: 0.8446 - recall: 0.7910 - val_accuracy: 0.8067 - val_loss: 0.4336 - val_precision: 0.8562 - val_recall: 0.7844
+
+Epoch 31/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8750 - loss: 0.3171 - precision: 0.8889 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8100 - loss: 0.4288 - precision: 0.8614 - recall: 0.8079 - val_accuracy: 0.8133 - val_loss: 0.4309 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 32/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3243 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8067 - loss: 0.4219 - precision: 0.8584 - recall: 0.8051 - val_accuracy: 0.8033 - val_loss: 0.4328 - val_precision: 0.8553 - val_recall: 0.7784
+
+Epoch 33/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.7500 - loss: 0.4176 - precision: 0.8571 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8008 - loss: 0.4409 - precision: 0.8580 - recall: 0.7938 - val_accuracy: 0.8067 - val_loss: 0.4344 - val_precision: 0.8609 - val_recall: 0.7784
+
+Epoch 34/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.3617 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7950 - loss: 0.4360 - precision: 0.8554 - recall: 0.7853 - val_accuracy: 0.8067 - val_loss: 0.4350 - val_precision: 0.8609 - val_recall: 0.7784
+
+Epoch 35/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8125 - loss: 0.3843 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8083 - loss: 0.4243 - precision: 0.8723 - recall: 0.7910 - val_accuracy: 0.8133 - val_loss: 0.4329 - val_precision: 0.8627 - val_recall: 0.7904
+
+Epoch 36/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8125 - loss: 0.3762 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8033 - loss: 0.4263 - precision: 0.8587 - recall: 0.7980 - val_accuracy: 0.8167 - val_loss: 0.4310 - val_precision: 0.8636 - val_recall: 0.7964
+
+Epoch 37/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3204 - precision: 0.8889 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8067 - loss: 0.4264 - precision: 0.8684 - recall: 0.7924 - val_accuracy: 0.8133 - val_loss: 0.4299 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 38/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.3468 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8042 - loss: 0.4211 - precision: 0.8567 - recall: 0.8023 - val_accuracy: 0.8167 - val_loss: 0.4312 - val_precision: 0.8636 - val_recall: 0.7964
+
+Epoch 39/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3674 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8050 - loss: 0.4277 - precision: 0.8602 - recall: 0.7994 - val_accuracy: 0.8133 - val_loss: 0.4289 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 40/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 24ms/step - accuracy: 0.9062 - loss: 0.3215 - precision: 0.9412 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8042 - loss: 0.4299 - precision: 0.8556 - recall: 0.8037 - val_accuracy: 0.8167 - val_loss: 0.4317 - val_precision: 0.8636 - val_recall: 0.7964
+
+Epoch 41/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8438 - loss: 0.3619 - precision: 0.9333 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8158 - loss: 0.4220 - precision: 0.8684 - recall: 0.8107 - val_accuracy: 0.8100 - val_loss: 0.4276 - val_precision: 0.8526 - val_recall: 0.7964
+
+Epoch 42/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 26ms/step - accuracy: 0.8750 - loss: 0.3016 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8033 - loss: 0.4248 - precision: 0.8631 - recall: 0.7924 - val_accuracy: 0.8100 - val_loss: 0.4281 - val_precision: 0.8526 - val_recall: 0.7964
+
+Epoch 43/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 26ms/step - accuracy: 0.8750 - loss: 0.2858 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8208 - loss: 0.4189 - precision: 0.8696 - recall: 0.8192 - val_accuracy: 0.8133 - val_loss: 0.4293 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 44/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.3672 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8117 - loss: 0.4185 - precision: 0.8777 - recall: 0.7910 - val_accuracy: 0.8133 - val_loss: 0.4300 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 45/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 25ms/step - accuracy: 0.7812 - loss: 0.3536 - precision: 0.9231 - recall: 0.6667
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7892 - loss: 0.4299 - precision: 0.8495 - recall: 0.7811 - val_accuracy: 0.8133 - val_loss: 0.4280 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 46/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8750 - loss: 0.3577 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8083 - loss: 0.4252 - precision: 0.8610 - recall: 0.8051 - val_accuracy: 0.8100 - val_loss: 0.4258 - val_precision: 0.8526 - val_recall: 0.7964
+
+Epoch 47/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 24ms/step - accuracy: 0.8750 - loss: 0.3505 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8042 - loss: 0.4294 - precision: 0.8589 - recall: 0.7994 - val_accuracy: 0.8100 - val_loss: 0.4292 - val_precision: 0.8571 - val_recall: 0.7904
+
+Epoch 48/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3510 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7967 - loss: 0.4283 - precision: 0.8602 - recall: 0.7825 - val_accuracy: 0.8100 - val_loss: 0.4285 - val_precision: 0.8571 - val_recall: 0.7904
+
+Epoch 49/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.9688 - loss: 0.2990 - precision: 1.0000 - recall: 0.9444
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8000 - loss: 0.4376 - precision: 0.8514 - recall: 0.8008 - val_accuracy: 0.8133 - val_loss: 0.4246 - val_precision: 0.8535 - val_recall: 0.8024
+
+Epoch 50/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8750 - loss: 0.3683 - precision: 0.8889 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8017 - loss: 0.4233 - precision: 0.8615 - recall: 0.7910 - val_accuracy: 0.8133 - val_loss: 0.4292 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 51/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.7812 - loss: 0.3810 - precision: 0.8667 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8058 - loss: 0.4152 - precision: 0.8659 - recall: 0.7938 - val_accuracy: 0.8133 - val_loss: 0.4234 - val_precision: 0.8535 - val_recall: 0.8024
+
+Epoch 52/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8438 - loss: 0.3344 - precision: 0.9333 - recall: 0.7778
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8033 - loss: 0.4218 - precision: 0.8631 - recall: 0.7924 - val_accuracy: 0.8133 - val_loss: 0.4272 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 53/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.8750 - loss: 0.3446 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8158 - loss: 0.4153 - precision: 0.8718 - recall: 0.8065 - val_accuracy: 0.8133 - val_loss: 0.4261 - val_precision: 0.8535 - val_recall: 0.8024
+
+Epoch 54/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 28ms/step - accuracy: 0.9062 - loss: 0.3241 - precision: 0.9412 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7992 - loss: 0.4307 - precision: 0.8598 - recall: 0.7881 - val_accuracy: 0.8133 - val_loss: 0.4287 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 55/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.8438 - loss: 0.3540 - precision: 0.8824 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8017 - loss: 0.4239 - precision: 0.8593 - recall: 0.7938 - val_accuracy: 0.8167 - val_loss: 0.4305 - val_precision: 0.8590 - val_recall: 0.8024
+
+Epoch 56/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 27ms/step - accuracy: 0.8438 - loss: 0.3693 - precision: 0.8824 - recall: 0.8333
+
+<span class="ansi-bold">31/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━</span><span class="ansi-white-fg">━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - accuracy: 0.8153 - loss: 0.4151 - precision: 0.8833 - recall: 0.7957 
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 4ms/step - accuracy: 0.8125 - loss: 0.4224 - precision: 0.8710 - recall: 0.8008 - val_accuracy: 0.8167 - val_loss: 0.4264 - val_precision: 0.8590 - val_recall: 0.8024
+
+Epoch 57/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 26ms/step - accuracy: 0.8125 - loss: 0.3472 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8033 - loss: 0.4157 - precision: 0.8699 - recall: 0.7839 - val_accuracy: 0.8067 - val_loss: 0.4299 - val_precision: 0.8562 - val_recall: 0.7844
+
+Epoch 58/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 22ms/step - accuracy: 0.9062 - loss: 0.3276 - precision: 0.9412 - recall: 0.8889
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.7917 - loss: 0.4248 - precision: 0.8567 - recall: 0.7768 - val_accuracy: 0.8133 - val_loss: 0.4272 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 59/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 23ms/step - accuracy: 0.8750 - loss: 0.3435 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8125 - loss: 0.4174 - precision: 0.8756 - recall: 0.7952 - val_accuracy: 0.8067 - val_loss: 0.4240 - val_precision: 0.8516 - val_recall: 0.7904
+
+Epoch 60/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8750 - loss: 0.3657 - precision: 0.9375 - recall: 0.8333
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8017 - loss: 0.4263 - precision: 0.8571 - recall: 0.7966 - val_accuracy: 0.8100 - val_loss: 0.4268 - val_precision: 0.8571 - val_recall: 0.7904
+
+Epoch 61/200
+
+
+<span class="ansi-bold"> 1/38</span> <span class="ansi-white-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 21ms/step - accuracy: 0.8125 - loss: 0.3796 - precision: 0.9286 - recall: 0.7222
+
+<span class="ansi-bold">38/38</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 3ms/step - accuracy: 0.8075 - loss: 0.4232 - precision: 0.8721 - recall: 0.7895 - val_accuracy: 0.8133 - val_loss: 0.4248 - val_precision: 0.8581 - val_recall: 0.7964
+
+Epoch 61: early stopping
+
+Restoring model weights from the end of the best epoch: 51.
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01-intro.osmnx_files/figure-html/cell-8-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+📊 EVALUACIÓN DEL MODELO DENSE
+==================================================
+Precisión: 0.8133
+Pérdida: 0.4234
+Precisión (metric): 0.8535
+Recall: 0.8024
+
+📈 REPORTE DE CLASIFICACIÓN:
+               precision    recall  f1-score   support
+
+No Inundación       0.77      0.83      0.80       133
+   Inundación       0.85      0.80      0.83       167
+
+     accuracy                           0.81       300
+    macro avg       0.81      0.81      0.81       300
+ weighted avg       0.82      0.81      0.81       300
+
+
+🎯 MATRIZ DE CONFUSIÓN:</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01-intro.osmnx_files/figure-html/cell-8-output-4.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="b42ee1ad" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. VISUALIZACIÓN DE PREDICCIONES INDIVIDUALES</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># =============================================================================</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># echo: false</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🔍 PRIMERAS 6 PREDICCIONES vs REALIDAD:"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">50</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Crear un DataFrame para visualización</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>resultados_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Muestra'</span>: <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">7</span>),</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Lluvia_Total'</span>: X_test[:<span class="dv">6</span>, <span class="dv">0</span>] <span class="op">*</span> (df[<span class="st">'lluvia_total'</span>].<span class="bu">max</span>() <span class="op">-</span> df[<span class="st">'lluvia_total'</span>].<span class="bu">min</span>()) <span class="op">+</span> df[<span class="st">'lluvia_total'</span>].<span class="bu">min</span>(),</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Intensidad'</span>: X_test[:<span class="dv">6</span>, <span class="dv">1</span>] <span class="op">*</span> (df[<span class="st">'intensidad_lluvia'</span>].<span class="bu">max</span>() <span class="op">-</span> df[<span class="st">'intensidad_lluvia'</span>].<span class="bu">min</span>()) <span class="op">+</span> df[<span class="st">'intensidad_lluvia'</span>].<span class="bu">min</span>(),</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Drenaje'</span>: X_test[:<span class="dv">6</span>, <span class="dv">3</span>] <span class="op">*</span> (df[<span class="st">'capacidad_drenaje'</span>].<span class="bu">max</span>() <span class="op">-</span> df[<span class="st">'capacidad_drenaje'</span>].<span class="bu">min</span>()) <span class="op">+</span> df[<span class="st">'capacidad_drenaje'</span>].<span class="bu">min</span>(),</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Real'</span>: y_test[:<span class="dv">6</span>],</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Predicho'</span>: y_pred[:<span class="dv">6</span>],</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">'Probabilidad'</span>: y_pred_proba[:<span class="dv">6</span>].flatten()</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostrar tabla</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    real_str <span class="op">=</span> <span class="st">"🔵 INUNDACIÓN"</span> <span class="cf">if</span> resultados_df[<span class="st">'Real'</span>].iloc[i] <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">"⚫ NO INUNDACIÓN"</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>    pred_str <span class="op">=</span> <span class="st">"🔴 INUNDACIÓN"</span> <span class="cf">if</span> resultados_df[<span class="st">'Predicho'</span>].iloc[i] <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">"⚪ NO INUNDACIÓN"</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    prob <span class="op">=</span> resultados_df[<span class="st">'Probabilidad'</span>].iloc[i]</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Muestra </span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Lluvia: </span><span class="sc">{</span>resultados_df[<span class="st">'Lluvia_Total'</span>]<span class="sc">.</span>iloc[i]<span class="sc">:.1f}</span><span class="ss">mm | Intensidad: </span><span class="sc">{</span>resultados_df[<span class="st">'Intensidad'</span>]<span class="sc">.</span>iloc[i]<span class="sc">:.1f}</span><span class="ss">mm/h"</span>)</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Drenaje: </span><span class="sc">{</span>resultados_df[<span class="st">'Drenaje'</span>]<span class="sc">.</span>iloc[i]<span class="sc">:.1f}</span><span class="ss">% | Prob: </span><span class="sc">{</span>prob<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Real: </span><span class="sc">{</span>real_str<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Pred: </span><span class="sc">{</span>pred_str<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="st">'✅ ACIERTO'</span> <span class="cf">if</span> resultados_df[<span class="st">'Real'</span>]<span class="sc">.</span>iloc[i] <span class="op">==</span> resultados_df[<span class="st">'Predicho'</span>]<span class="sc">.</span>iloc[i] <span class="cf">else</span> <span class="st">'❌ ERROR'</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfica de comparación</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfica 1: Valores reales vs predichos</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>plt.subplot(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">1</span>)</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">7</span>)</span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>plt.plot(indices, y_test[:<span class="dv">6</span>], <span class="st">'bo-'</span>, label<span class="op">=</span><span class="st">'Real'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, markersize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>plt.plot(indices, y_pred[:<span class="dv">6</span>], <span class="st">'ro--'</span>, label<span class="op">=</span><span class="st">'Predicho'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, markersize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>plt.plot(indices, y_pred_proba[:<span class="dv">6</span>], <span class="st">'gx-'</span>, label<span class="op">=</span><span class="st">'Probabilidad'</span>, linewidth<span class="op">=</span><span class="dv">1</span>, markersize<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Comparación: Real vs Predicho</span><span class="ch">\n</span><span class="st">(Primeras 6 muestras)'</span>)</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Número de Muestra'</span>)</span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Valor'</span>)</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>plt.xticks(indices)</span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a><span class="co"># Gráfica 2: Probabilidades con umbral</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>plt.subplot(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>bars <span class="op">=</span> plt.bar(indices, y_pred_proba[:<span class="dv">6</span>].flatten(), color<span class="op">=</span>[<span class="st">'red'</span> <span class="cf">if</span> x <span class="op">&gt;</span> <span class="fl">0.5</span> <span class="cf">else</span> <span class="st">'blue'</span> <span class="cf">for</span> x <span class="kw">in</span> y_pred_proba[:<span class="dv">6</span>]])</span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>plt.axhline(y<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'Umbral (0.5)'</span>)</span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Probabilidades de Predicción</span><span class="ch">\n</span><span class="st">(Rojo &gt; 0.5 = Inundación)'</span>)</span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Número de Muestra'</span>)</span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Probabilidad'</span>)</span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>plt.xticks(indices)</span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a><span class="co"># Añadir valores en las barras</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bar, prob, real, pred <span class="kw">in</span> <span class="bu">zip</span>(bars, y_pred_proba[:<span class="dv">6</span>], y_test[:<span class="dv">6</span>], y_pred[:<span class="dv">6</span>]):</span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>    height <span class="op">=</span> bar.get_height()</span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>    color <span class="op">=</span> <span class="st">'green'</span> <span class="cf">if</span> real <span class="op">==</span> pred <span class="cf">else</span> <span class="st">'black'</span></span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>    plt.text(bar.get_x() <span class="op">+</span> bar.get_width()<span class="op">/</span><span class="fl">2.</span>, height <span class="op">+</span> <span class="fl">0.02</span>,</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>             <span class="ss">f'</span><span class="sc">{</span>prob[<span class="dv">0</span>]<span class="sc">:.3f}</span><span class="ch">\n</span><span class="ss">(</span><span class="sc">{</span><span class="st">"✅"</span> <span class="cf">if</span> real <span class="op">==</span> pred <span class="cf">else</span> <span class="st">"❌"</span><span class="sc">}</span><span class="ss">)'</span>,</span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>             ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'bottom'</span>, color<span class="op">=</span>color, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+🔍 PRIMERAS 6 PREDICCIONES vs REALIDAD:
+==================================================
+Muestra 1:
+  Lluvia: 60.1mm | Intensidad: 25.9mm/h
+  Drenaje: 67.9% | Prob: 0.126
+  Real: ⚫ NO INUNDACIÓN
+  Pred: ⚪ NO INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------
+Muestra 2:
+  Lluvia: 44.8mm | Intensidad: 31.5mm/h
+  Drenaje: 93.1% | Prob: 0.061
+  Real: ⚫ NO INUNDACIÓN
+  Pred: ⚪ NO INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------
+Muestra 3:
+  Lluvia: 24.9mm | Intensidad: 45.7mm/h
+  Drenaje: 64.5% | Prob: 0.180
+  Real: ⚫ NO INUNDACIÓN
+  Pred: ⚪ NO INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------
+Muestra 4:
+  Lluvia: 125.3mm | Intensidad: 10.0mm/h
+  Drenaje: 49.8% | Prob: 0.920
+  Real: 🔵 INUNDACIÓN
+  Pred: 🔴 INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------
+Muestra 5:
+  Lluvia: 90.7mm | Intensidad: 88.7mm/h
+  Drenaje: 68.5% | Prob: 0.947
+  Real: 🔵 INUNDACIÓN
+  Pred: 🔴 INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------
+Muestra 6:
+  Lluvia: 72.4mm | Intensidad: 4.7mm/h
+  Drenaje: 116.4% | Prob: 0.023
+  Real: ⚫ NO INUNDACIÓN
+  Pred: ⚪ NO INUNDACIÓN
+  ✅ ACIERTO
+----------------------------------------</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>C:\Users\52963\AppData\Local\Temp\ipykernel_19084\3071080274.py:68: UserWarning: Glyph 9989 (\N{WHITE HEAVY CHECK MARK}) missing from font(s) DejaVu Sans.
+  plt.tight_layout()
+C:\Users\52963\AppData\Roaming\Python\Python313\site-packages\IPython\core\pylabtools.py:170: UserWarning: Glyph 9989 (\N{WHITE HEAVY CHECK MARK}) missing from font(s) DejaVu Sans.
+  fig.canvas.print_figure(bytes_io, **kw)</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01-intro.osmnx_files/figure-html/cell-9-output-3.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="accuracy" class="level2">
+<h2 class="anchored" data-anchor-id="accuracy">Accuracy</h2>
+<section id="bootstrap" class="level3">
+<h3 class="anchored" data-anchor-id="bootstrap">Bootstrap</h3>
+<p>Regresión logística = 0.8 Árbol de desición = 0.85 Bagging 30 árboles = 0.83</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
